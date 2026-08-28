@@ -1,14 +1,16 @@
+import os
 import multiprocessing
 import uvicorn
 
 def run_revenue():
-    uvicorn.run("registries.revenue_service:app", host="0.0.0.0", port=8001)
+    uvicorn.run("registries.revenue_service:app", host="127.0.0.1", port=8001)
 
 def run_academic():
-    uvicorn.run("registries.academic_service:app", host="0.0.0.0", port=8002)
+    uvicorn.run("registries.academic_service:app", host="127.0.0.1", port=8002)
 
 def run_gateway():
-    uvicorn.run("gateway.gateway_service:app", host="0.0.0.0", port=8000)
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run("gateway.gateway_service:app", host="0.0.0.0", port=port)
 
 if __name__ == "__main__":
     p1 = multiprocessing.Process(target=run_revenue)
