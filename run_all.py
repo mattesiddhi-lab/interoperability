@@ -1,26 +1,28 @@
 import os
-import multiprocessing
+import sys
+import threading
 import uvicorn
 
-def run_revenue():
-    uvicorn.run("registries.revenue_service:app", host="127.0.0.1", port=8001)
+# Set root directory in Python path
+sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
-def run_academic():
-    uvicorn.run("registries.academic_service:app", host="127.0.0.1", port=8002)
+from registries.revenue_service import app as revenue_app
+from registries.academic_service import app as academic_app
+from gateway.gateway_service import app as gateway_app
 
-def run_gateway():
-    port = int(os.environ.get("PORT", 8000))
-    uvicorn.run("gateway.gateway_service:app", host="0.0.0.0", port=port)
+def start_revenue():
+    uvicorn.run(revenue_app, host="127.0.0.1", port=8001, log_level="warning")
+
+def start_academic():
+    uvicorn.run(academic_app, host="127.0.0.1", port=8002, log_level="warning")
 
 if __name__ == "__main__":
-    p1 = multiprocessing.Process(target=run_revenue)
-    p2 = multiprocessing.Process(target=run_academic)
-    p3 = multiprocessing.Process(target=run_gateway)
+    # Start internal registries in background daemon threads
+    t1 = threading.Thread(target=start_revenue, daemon=True)
+    t2 = threading.Thread(target=start_academic, daemon=True)
+    t1.start()
+    t2.start()
 
-    p1.start()
-    p2.start()
-    p3.start()
-
-    p1.join()
-    p2.join()
-    p3.join()
+    # Bind gateway to Render's public PORT environment variable
+    port = int(os.environ.get("PORT", 10000))
+    uvicorn.run(gateway_app, host="0.0.0.0", port=port)
