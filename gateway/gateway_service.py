@@ -68,8 +68,13 @@ async def verify_scholarship(request: dict):
 
 # Serve interactive dashboard UI directly
 @app.get("/", response_class=HTMLResponse)
+import os
+
+@app.get("/", response_class=HTMLResponse)
 def serve_ui():
-    with open("frontend/index.html", "r") as f:
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    html_path = os.path.join(base_dir, "frontend", "index.html")
+    with open(html_path, "r", encoding="utf-8") as f:
         return f.read()
 
 if __name__ == "__main__":
