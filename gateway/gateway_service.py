@@ -1,14 +1,16 @@
+import os
+import hashlib
+from datetime import datetime
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
-import httpx
 import jwt
-import hashlib
-from datetime import datetime
+
+from registries.revenue_service import get_tax_record
+from registries.academic_service import get_student_record
 
 app = FastAPI(title="Interoperability Gateway")
 
-# Enable CORS for local testing
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -25,29 +27,25 @@ async def verify_scholarship(request: dict):
     citizen_id = request.get("citizen_id")
     consent = request.get("consent", {})
 
-    # 1. ABAC: Purpose Limitation Check (DPDP Act 2023)
+    # 1. ABAC: Validate Purpose and Active Consent
     if consent.get("purpose") != "NSP_SCHOLARSHIP_2026" or not consent.get("active", False):
         raise HTTPException(status_code=403, detail="Consent denied, expired, or purpose mismatch.")
 
-    # 2. Ephemeral Fetch from Mock Registries
+    # 2. Ephemeral Fetch from Registries
     try:
-        async with httpx.AsyncClient() as client:
-            rev_resp = await client.get(f"http://127.0.0.1:8001/tax/v1/assessment/{citizen_id}")
-            acad_resp = await client.get(f"http://127.0.0.1:8002/board/v2/students/{citizen_id}")
-    except httpx.RequestError:
-        raise HTTPException(status_code=502, detail="Upstream Department Service unreachable.")
+        rev_resp = get_tax_record(citizen_id)
+        acad_resp = get_student_record(citizen_id)
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Registry Error: {str(e)}")
 
-    if rev_resp.status_code != 200 or acad_resp.status_code != 200:
-        raise HTTPException(status_code=502, detail="Upstream verification failed.")
-
-    # 3. Cryptographic Verification of JWS
+    # 3. Cryptographic Verification of JWS Signatures
     try:
-        rev_payload = jwt.decode(rev_resp.json()["signed_jws"], REV_SECRET, algorithms=["HS256"])["data"]
-        acad_payload = jwt.decode(acad_resp.json()["signed_jws"], ACAD_SECRET, algorithms=["HS256"])["data"]
+        rev_payload = jwt.decode(rev_resp["signed_jws"], REV_SECRET, algorithms=["HS256"])["data"]
+        acad_payload = jwt.decode(acad_resp["signed_jws"], ACAD_SECRET, algorithms=["HS256"])["data"]
     except Exception:
-        raise HTTPException(status_code=401, detail="Cryptographic signature verification failed.")
+        raise HTTPException(status_code=401, detail="Cryptographic verification failed.")
 
-    # 4. Semantic Normalization & Data Minimization (Zero-Knowledge Boolean)
+    # 4. Semantic Normalization & Data Minimization (Zero-Knowledge Output)
     income_valid = rev_payload["gross_annual_income"] < 250000
     marks_valid = acad_payload["marks_percentage"] >= 75.0
     is_eligible = income_valid and marks_valid
@@ -66,17 +64,11 @@ async def verify_scholarship(request: dict):
         "audit_proof": f"SHA256:{audit_hash}"
     }
 
-# Serve interactive dashboard UI directly
-@app.get("/", response_class=HTMLResponse)
-import os
-
 @app.get("/", response_class=HTMLResponse)
 def serve_ui():
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     html_path = os.path.join(base_dir, "frontend", "index.html")
-    with open(html_path, "r", encoding="utf-8") as f:
-        return f.read()
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    if os.path.exists(html_path):
+        with open(html_path, "r", encoding="utf-8") as f:
+            return f.read()
+    return "<h1>Interoperability Gateway Active. Frontend file missing.</h1>"
