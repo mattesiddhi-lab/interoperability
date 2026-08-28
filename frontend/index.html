@@ -1,48 +1,154 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>my html file</title>
+  <meta charset="UTF-8">
+  <title>India DPI - Interoperability Gateway</title>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <!--Well this is my first html work i am doing-->
-    <h1>Hello Siddhi You are incredible!!!</h1>
-    <!-- <p>This is a paragraph</p> -->
-     <h2>Heading 2</h2> 
-     <h3>heading 3</h3>
-     <h4>heading 3</h4>
-     <h5>heading 3</h5>
-     <h6>heading 3</h6>
-     <p><u>sample paragraphsample paragraphsample paragraphsample paragraphsample paragraphsample paragraphsample paragraphsample paragraphsample paragraphsample paragraphsample paragraph</u></p>
+<body class="bg-slate-900 text-slate-100 min-h-screen p-8 font-sans">
+  <div class="max-w-6xl mx-auto space-y-6">
+    
+    <header class="border-b border-slate-700 pb-4 flex justify-between items-center">
+      <div>
+        <h1 class="text-2xl font-bold text-emerald-400">Decentralized Data Middleware Gateway</h1>
+        <p class="text-sm text-slate-400">Zero-Trust & Semantic Interoperability Layer (DPDP Act Compliant)</p>
+      </div>
+      <span class="px-3 py-1 bg-emerald-950 text-emerald-300 border border-emerald-800 rounded text-xs">Live Topology</span>
+    </header>
 
-     <a href="https://www.google.com/">Google</a>
-     <br/>
-     <a href="https://www.google.com/">Google</a>
-     <br/>
-     <a href="/hey1/hello.html">Go to hello</a>
-     <br/>
-     <img
-     src="https://th.bing.com/th/id/R.e068504c7c19704c3cd29dd86d3757f8?rik=5N1ABuzgDZXQ8w&riu=http%3a%2f%2fimages5.fanpop.com%2fimage%2fphotos%2f31800000%2fBrave-merida-31837256-1600-1200.jpg&ehk=stJ0T3jnInTz14topwGOa0mSjYpL545DoYGtO1NxDEw%3d&risl=&pid=ImgRaw&r=0"height="100"
-     alt="brave princess"
-     \>
-     <br/>
-     <b>BOLD</b>
-     <br/>
-     <i>ITALIC</i>
-     <br/>
-     <u>UNDERLINED</u>
-     <br/>
-     <big>This tag shows big tag</big>
-     <hr/>
-     <small>This tag shows small tag</small>
-     <hr/>
-     <p>C<sub>6</sub>H<sub>12</sub>O<sub>6</sub></p>
-     <br/>
-     <p>A<sup>12</sup>+ B<sup>12</sup>= C<sup>12</sup></p>
-     <br/>
-     <pre>Lorem                               ipsum dolor sit amet, consectetur adipisicing elit. Minima dicta natus, exercitationem inventore, repellat illo ad aspernatur quibusdam nam rerum sed in aliquid tempora necessitatibus magni facilis, fuga porro cumque!</pre>
-     <br/>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      
+      <!-- Panel 1: Citizen Consent Input -->
+      <div class="bg-slate-800 p-5 rounded-lg border border-slate-700 space-y-4">
+        <h2 class="text-lg font-semibold text-slate-200">1. Citizen Identity & Consent</h2>
+        
+        <div>
+          <label class="text-xs text-slate-400 block mb-1">Select Citizen Profile</label>
+          <select id="citizenSelect" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-white">
+            <option value="CITIZEN_101">Citizen 101 (Eligible: Income &lt; 2.5L, Marks &gt; 75%)</option>
+            <option value="CITIZEN_102">Citizen 102 (Ineligible: Income &gt; 2.5L, Marks &lt; 75%)</option>
+          </select>
+        </div>
 
+        <div>
+          <label class="text-xs text-slate-400 block mb-1">Purpose Scope</label>
+          <input type="text" id="purposeScope" value="NSP_SCHOLARSHIP_2026" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-white" readonly />
+        </div>
+
+        <div class="flex items-center space-x-2 pt-2">
+          <input type="checkbox" id="consentActive" checked class="w-4 h-4 text-emerald-600 rounded bg-slate-900 border-slate-700">
+          <label for="consentActive" class="text-sm text-slate-300">Grant Dynamic Consent</label>
+        </div>
+
+        <button onclick="runVerification()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-medium py-2 rounded transition">
+          Trigger Instant Verification
+        </button>
+      </div>
+
+      <!-- Panel 2: Pipeline Execution Log -->
+      <div class="bg-slate-800 p-5 rounded-lg border border-slate-700 space-y-3">
+        <h2 class="text-lg font-semibold text-slate-200">2. Gateway Pipeline Trace</h2>
+        <div id="logs" class="bg-slate-950 p-3 rounded font-mono text-xs text-slate-300 h-64 overflow-y-auto space-y-2 border border-slate-800">
+          <p class="text-slate-500">// Awaiting execution request...</p>
+        </div>
+      </div>
+
+      <!-- Panel 3: Result & Audit Output -->
+      <div class="bg-slate-800 p-5 rounded-lg border border-slate-700 space-y-4">
+        <h2 class="text-lg font-semibold text-slate-200">3. Verification Output</h2>
+        
+        <div id="statusBadge" class="p-3 rounded text-center font-bold text-sm bg-slate-900 text-slate-500 border border-slate-700">
+          STATUS: IDLE
+        </div>
+
+        <div class="space-y-2 text-sm">
+          <div class="flex justify-between border-b border-slate-700 pb-1">
+            <span class="text-slate-400">Income Criteria (&lt; 2.5L):</span>
+            <span id="incomeRes" class="font-mono text-slate-300">-</span>
+          </div>
+          <div class="flex justify-between border-b border-slate-700 pb-1">
+            <span class="text-slate-400">Academic Merit (&gt;= 75%):</span>
+            <span id="meritRes" class="font-mono text-slate-300">-</span>
+          </div>
+          <div class="flex justify-between border-b border-slate-700 pb-1">
+            <span class="text-slate-400">Persistent Data Stored:</span>
+            <span class="font-mono text-emerald-400 font-semibold">0 Bytes (Ephemeral)</span>
+          </div>
+        </div>
+
+        <div>
+          <label class="text-xs text-slate-400 block mb-1">Tamper-Proof Audit Hash</label>
+          <div id="auditHash" class="bg-slate-950 p-2 rounded text-[10px] font-mono text-slate-400 break-all border border-slate-800">
+            None
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    async function runVerification() {
+      const citizenId = document.getElementById('citizenSelect').value;
+      const consentActive = document.getElementById('consentActive').checked;
+      const purpose = document.getElementById('purposeScope').value;
+      const logs = document.getElementById('logs');
+      const statusBadge = document.getElementById('statusBadge');
+
+      logs.innerHTML = '';
+      const appendLog = (msg, color = "text-slate-300") => {
+        logs.innerHTML += `<p class="${color}">> ${msg}</p>`;
+        logs.scrollTop = logs.scrollHeight;
+      };
+
+      appendLog("Initiating cross-departmental verification request...");
+      appendLog(`Evaluating ABAC Policy for purpose: ${purpose}...`);
+
+      try {
+        const response = await fetch('/api/v1/scholarship-check', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            citizen_id: citizenId,
+            consent: { purpose: purpose, active: consentActive }
+          })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          appendLog(`ACCESS DENIED: ${data.detail}`, "text-rose-400");
+          statusBadge.className = "p-3 rounded text-center font-bold text-sm bg-rose-950 text-rose-300 border border-rose-800";
+          statusBadge.innerText = "VERIFICATION BLOCKED";
+          document.getElementById('incomeRes').innerText = "BLOCKED";
+          document.getElementById('meritRes').innerText = "BLOCKED";
+          document.getElementById('auditHash').innerText = "None";
+          return;
+        }
+
+        appendLog("Consent valid. Querying Revenue API (Port 8001)...", "text-sky-300");
+        appendLog("Querying Academic Board API (Port 8002)...", "text-sky-300");
+        appendLog("mTLS & JWS Cryptographic signatures verified OK.", "text-emerald-400");
+        appendLog("Performing Semantic Translation & Data Minimization...", "text-yellow-300");
+        appendLog("Generated Tamper-Evident SHA-256 Audit Log Entry.", "text-emerald-400");
+
+        const res = data.verification_result;
+        document.getElementById('incomeRes').innerText = res.income_criteria_met ? "PASSED (true)" : "FAILED (false)";
+        document.getElementById('meritRes').innerText = res.merit_criteria_met ? "PASSED (true)" : "FAILED (false)";
+        document.getElementById('auditHash').innerText = data.audit_proof;
+
+        if (res.overall_eligible) {
+          statusBadge.className = "p-3 rounded text-center font-bold text-sm bg-emerald-950 text-emerald-300 border border-emerald-800";
+          statusBadge.innerText = "SCHOLARSHIP APPROVED";
+        } else {
+          statusBadge.className = "p-3 rounded text-center font-bold text-sm bg-amber-950 text-amber-300 border border-amber-800";
+          statusBadge.innerText = "CRITERIA NOT MET";
+        }
+
+      } catch (err) {
+        appendLog(`Network/Connection error: ${err.message}`, "text-rose-400");
+      }
+    }
+  </script>
 </body>
 </html>
